@@ -1,0 +1,20 @@
+name: DamageSplashesPK
+version: 1.0
+main: me.dreig_michihi.damagesplashespk.DamageSplashesPK
+api-version: 1.16
+authors: [ Dreig_Michihi ]
+description: tmp
+depend: [ProtocolLib, ProjectKorra]
+commands:
+  dspkreload:
+    description: Reload plugin
+    usage: /<command>
+    aliases:
+      - damagesplashespkreload
+permissions:
+  dspk.command.reload:
+    default: op
+    description: Grants access to reload command.
+  dspk.cansee:
+    default: true
+    description: Grants access to see damage splashes.

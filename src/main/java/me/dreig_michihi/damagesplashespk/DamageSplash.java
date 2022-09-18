@@ -8,6 +8,7 @@ import com.comphenix.protocol.wrappers.WrappedChatComponent;
 import com.comphenix.protocol.wrappers.WrappedDataWatcher;
 import com.projectkorra.projectkorra.Element;
 import com.projectkorra.projectkorra.GeneralMethods;
+import com.projectkorra.projectkorra.configuration.ConfigManager;
 import me.dreig_michihi.damagesplashespk.config.SplashesConfig;
 //import org.bukkit.ChatColor;
 import net.md_5.bungee.api.ChatColor;
@@ -118,27 +119,29 @@ public class DamageSplash {
         SplashesConfig.get().addDefault("Animations.CameraFollow.Enabled", true);
         SplashesConfig.get().addDefault("Animations.CameraFollow.MaxRange", 1.5);
         SplashesConfig.get().addDefault("Animations.Disappearance.Enabled", true);
-        SplashesConfig.get().addDefault("Visuals.Default.Color", ChatColor.WHITE.toString());
+        SplashesConfig.get().addDefault("Visuals.Default.Color", "WHITE");
         SplashesConfig.get().addDefault("Visuals.Default.Symbol", "♥");
         for (Element element : Element.getAllElements()) {
-            SplashesConfig.get().addDefault("Visuals." + element.getName() + "." + element.getName() + ".Color", element.getColor().getChar());
+            SplashesConfig.get().addDefault("Visuals." + element.getName() + "." + element.getName() + ".Color",
+                    ConfigManager.languageConfig.get().getString("Chat.Colors." + element.getName()));
             SplashesConfig.get().addDefault("Visuals." + element.getName() + "." + element.getName() + ".Symbol", "♥");
             for (Element.SubElement subElement : Element.getSubElements(element)) {
-                SplashesConfig.get().addDefault("Visuals." + element.getName() + "." + subElement.getName() + ".Color", subElement.getColor().getChar());
+                SplashesConfig.get().addDefault("Visuals." + element.getName() + "." + subElement.getName() + ".Color",
+                        ConfigManager.languageConfig.get().getString("Chat.Colors." + subElement.getName()));
                 SplashesConfig.get().addDefault("Visuals." + element.getName() + "." + subElement.getName() + ".Symbol", "♥");
             }
         }
         SplashesConfig.save();
-        elementColors.put(null, ChatColor.of((SplashesConfig.get().getString("Visuals.Default.Color", ChatColor.WHITE.toString()))));
+        elementColors.put(null, ChatColor.of((SplashesConfig.get().getString("Visuals.Default.Color", "WHITE"))));
         elementSymbols.put(null, SplashesConfig.get().getString("Visuals.Default.Symbols", "♥"));
         for (Element element : Element.getAllElements()) {
             elementColors.put(element, ChatColor.of(
-                    SplashesConfig.get().getString("Visuals." + element.getName() + "." + element.getName() + ".Color", element.getColor().toString())));
+                    SplashesConfig.get().getString("Visuals." + element.getName() + "." + element.getName() + ".Color", element.getColor().getName())));
             elementSymbols.put(element,
                     SplashesConfig.get().getString("Visuals." + element.getName() + "." + element.getName() + ".Symbol", "♥"));
             for (Element.SubElement subElement : Element.getSubElements(element)) {
                 elementColors.put(subElement, ChatColor.of(
-                        SplashesConfig.get().getString("Visuals." + element.getName() + "." + subElement.getName() + ".Color", subElement.getColor().toString())));
+                        SplashesConfig.get().getString("Visuals." + element.getName() + "." + subElement.getName() + ".Color", subElement.getColor().getName())));
                 elementSymbols.put(subElement,
                         SplashesConfig.get().getString("Visuals." + element.getName() + "." + subElement.getName() + ".Symbol", "♥"));
             }
@@ -207,14 +210,14 @@ public class DamageSplash {
         // Entity Type
         packet.getEntityTypeModifier().write(0, EntityType.ARMOR_STAND);//or EntityType.AREA_EFFECT_CLOUD!!!
         // Set optional velocity (/8000)
-        packet.getIntegers().write(1, 0);
+        /*packet.getIntegers().write(1, 0);
         packet.getIntegers().write(2, 0);
         packet.getIntegers().write(3, 0);
         // Set yaw pitch
         packet.getIntegers().write(4, 0);
         packet.getIntegers().write(5, 0);
         // Set object data
-        packet.getIntegers().write(6, 0);
+        packet.getIntegers().write(6, 0);*/
         // Set location
         location = source.getEyeLocation();
         packet.getDoubles().write(0, location.getX());

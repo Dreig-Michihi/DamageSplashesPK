@@ -68,7 +68,7 @@ public class SplashesConfig {
                 Translate plugin messages here.""", true);
         ConfigComments.addDefaultComment("Visuals", """
                 
-                # In the Color field use minecraft color code char. Color Codes: htmlcolorcodes.com/minecraft-color-codes
+                # In the Color field use minecraft color name or hex code #RRGGBB. Hex Colors Generator: https://www.w3schools.com/colors/colors_hexadecimal.asp
                 # In the Symbol field use any UTF-8 symbol you like and minecraft supports.""", false);
         ConfigComments.addDefaultComment("Info.SplashDuration", """
                 How long splash exists""", true);

@@ -19,6 +19,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
+import java.awt.*;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.List;
@@ -119,29 +120,32 @@ public class DamageSplash {
         SplashesConfig.get().addDefault("Animations.CameraFollow.Enabled", true);
         SplashesConfig.get().addDefault("Animations.CameraFollow.MaxRange", 1.5);
         SplashesConfig.get().addDefault("Animations.Disappearance.Enabled", true);
-        SplashesConfig.get().addDefault("Visuals.Default.Color", "WHITE");
+        SplashesConfig.get().addDefault("Visuals.Default.Color",
+                "#" + String.format("%06x", 0xFFFFFF & Color.WHITE.getRGB()));
         SplashesConfig.get().addDefault("Visuals.Default.Symbol", "♥");
         for (Element element : Element.getAllElements()) {
             SplashesConfig.get().addDefault("Visuals." + element.getName() + "." + element.getName() + ".Color",
-                    ConfigManager.languageConfig.get().getString("Chat.Colors." + element.getName()));
+                    "#" + String.format("%06x", 0xFFFFFF & element.getColor().getColor().getRGB()));
             SplashesConfig.get().addDefault("Visuals." + element.getName() + "." + element.getName() + ".Symbol", "♥");
             for (Element.SubElement subElement : Element.getSubElements(element)) {
                 SplashesConfig.get().addDefault("Visuals." + element.getName() + "." + subElement.getName() + ".Color",
-                        ConfigManager.languageConfig.get().getString("Chat.Colors." + subElement.getName()));
+                        "#" + String.format("%06x", 0xFFFFFF & subElement.getColor().getColor().getRGB()));
                 SplashesConfig.get().addDefault("Visuals." + element.getName() + "." + subElement.getName() + ".Symbol", "♥");
             }
         }
         SplashesConfig.save();
-        elementColors.put(null, ChatColor.of((SplashesConfig.get().getString("Visuals.Default.Color", "WHITE"))));
+        elementColors.put(null, ChatColor.of((SplashesConfig.get().getString("Visuals.Default.Color", "#" + String.format("%06x", 0xFFFFFF & Color.WHITE.getRGB())))));
         elementSymbols.put(null, SplashesConfig.get().getString("Visuals.Default.Symbols", "♥"));
         for (Element element : Element.getAllElements()) {
             elementColors.put(element, ChatColor.of(
-                    SplashesConfig.get().getString("Visuals." + element.getName() + "." + element.getName() + ".Color", element.getColor().getName())));
+                    SplashesConfig.get().getString("Visuals." + element.getName() + "." + element.getName() + ".Color",
+                            "#" + String.format("%06x", 0xFFFFFF & element.getColor().getColor().getRGB()))));
             elementSymbols.put(element,
                     SplashesConfig.get().getString("Visuals." + element.getName() + "." + element.getName() + ".Symbol", "♥"));
             for (Element.SubElement subElement : Element.getSubElements(element)) {
                 elementColors.put(subElement, ChatColor.of(
-                        SplashesConfig.get().getString("Visuals." + element.getName() + "." + subElement.getName() + ".Color", subElement.getColor().getName())));
+                        SplashesConfig.get().getString("Visuals." + element.getName() + "." + subElement.getName() + ".Color",
+                                "#" + String.format("%06x", 0xFFFFFF & subElement.getColor().getColor().getRGB()))));
                 elementSymbols.put(subElement,
                         SplashesConfig.get().getString("Visuals." + element.getName() + "." + subElement.getName() + ".Symbol", "♥"));
             }

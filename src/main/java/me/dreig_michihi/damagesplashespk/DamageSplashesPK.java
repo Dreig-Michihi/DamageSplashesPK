@@ -13,12 +13,8 @@ public final class DamageSplashesPK extends JavaPlugin {
     @Override
     public void onEnable() {
         plugin = this;
-
-        /*getConfig().options().copyDefaults();
-        saveDefaultConfig();*/
-
         SplashesConfig.setup();
-        SplashesConfig.reload();
+        //SplashesConfig.reload();
         SplashesConfig.get().options().copyDefaults(true);
         SplashesConfig.save();
         Objects.requireNonNull(getCommand("dspkreload")).setExecutor(new ReloadCommand());

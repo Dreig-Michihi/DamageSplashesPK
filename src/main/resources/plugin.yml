@@ -1,10 +1,10 @@
 name: DamageSplashesPK
-version: 1.0
+version: 1.3
 main: me.dreig_michihi.damagesplashespk.DamageSplashesPK
 api-version: 1.16
 authors: [ Dreig_Michihi ]
-description: tmp
-depend: [ProtocolLib, ProjectKorra]
+description: See your damage!
+depend: [ProtocolLib, ProjectKorra, Spirits, JedCore]
 commands:
   dspkreload:
     description: Reload plugin

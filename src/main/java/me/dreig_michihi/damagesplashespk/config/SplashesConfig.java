@@ -66,6 +66,8 @@ public class SplashesConfig {
         DamageSplash.load();
         ConfigComments.addDefaultComment("Language", """
                 Translate plugin messages here.""", true);
+        ConfigComments.addDefaultComment("Animations.Appearance.CloserCombatCloserSplashes", """
+                Splashes will spawn closer in melee, but it requires a little bit more computation.""", true);
         ConfigComments.addDefaultComment("Visuals", """
                 
                 # In the Color field use minecraft color name or hex code #RRGGBB. Hex Colors Generator: https://www.w3schools.com/colors/colors_hexadecimal.asp

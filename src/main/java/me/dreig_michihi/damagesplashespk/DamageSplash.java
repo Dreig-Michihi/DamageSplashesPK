@@ -69,7 +69,10 @@ public class DamageSplash {
                         .add(random.clone()*//*.multiply(scatter)*//*);*/
                 Location destination = player.getEyeLocation()
                         .add((GeneralMethods.getDirection(player.getEyeLocation(), origin).normalize())
-                                .multiply(closeness)) //9*u=4.5
+                                .multiply(closeness)
+                                .multiply(Math.min(1, closerCombatCloserSplashes?
+                                        Math.max(minCloseness/(minCloseness+7.5),
+                                                player.getEyeLocation().distance(origin)/(minCloseness + 7.5)):1))) //9*u=4.5
                         .add(random);
                 if (followCamera) {
                     Vector splashDirection = GeneralMethods.getDirection(player.getEyeLocation(), origin).normalize().multiply(cameraFollowMaxRange);
@@ -108,6 +111,7 @@ public class DamageSplash {
     private static boolean followCamera;
     private static double cameraFollowMaxRange;
     private static boolean disappearAnimation;
+    private static boolean closerCombatCloserSplashes;
     private static long splashDuration;
     private static final HashMap<Element, ChatColor> elementColors = new HashMap<>();
     private static final HashMap<Element, String> elementSymbols = new HashMap<>();
@@ -116,6 +120,7 @@ public class DamageSplash {
         SplashesConfig.get().addDefault("Info.ShownNumberFactor", 0.5);
         SplashesConfig.get().addDefault("Info.SplashDuration", 1250L);
         SplashesConfig.get().addDefault("Animations.Appearance.MinCloseness", 1.5);
+        SplashesConfig.get().addDefault("Animations.Appearance.CloserCombatCloserSplashes", true);
         SplashesConfig.get().addDefault("Animations.Appearance.Scatter", 1);
         SplashesConfig.get().addDefault("Animations.CameraFollow.Enabled", true);
         SplashesConfig.get().addDefault("Animations.CameraFollow.MaxRange", 1.5);
@@ -129,7 +134,7 @@ public class DamageSplash {
             SplashesConfig.get().addDefault("Visuals." + element.getName() + "." + element.getName() + ".Symbol", "♥");
             for (Element.SubElement subElement : Element.getSubElements(element)) {
                 SplashesConfig.get().addDefault("Visuals." + element.getName() + "." + subElement.getName() + ".Color",
-                        "#" + String.format("%06x", 0xFFFFFF & subElement.getColor().getColor().getRGB()));
+                        "#" + String.format("%06x", 0xFFFFFF & (subElement.getPlugin()==null?Color.WHITE:subElement.getColor().getColor()).getRGB()));
                 SplashesConfig.get().addDefault("Visuals." + element.getName() + "." + subElement.getName() + ".Symbol", "♥");
             }
         }
@@ -145,7 +150,7 @@ public class DamageSplash {
             for (Element.SubElement subElement : Element.getSubElements(element)) {
                 elementColors.put(subElement, ChatColor.of(
                         SplashesConfig.get().getString("Visuals." + element.getName() + "." + subElement.getName() + ".Color",
-                                "#" + String.format("%06x", 0xFFFFFF & subElement.getColor().getColor().getRGB()))));
+                                "#" + String.format("%06x", 0xFFFFFF & (subElement.getPlugin()==null?Color.WHITE:subElement.getColor().getColor()).getRGB()))));
                 elementSymbols.put(subElement,
                         SplashesConfig.get().getString("Visuals." + element.getName() + "." + subElement.getName() + ".Symbol", "♥"));
             }
@@ -153,6 +158,7 @@ public class DamageSplash {
         damageFactor = SplashesConfig.get().getDouble("Info.ShownNumberFactor", 0.5);
         splashDuration = SplashesConfig.get().getLong("Info.SplashDuration", 1250);
         minCloseness = SplashesConfig.get().getDouble("Animations.Appearance.MinCloseness", 1.5);
+        closerCombatCloserSplashes = SplashesConfig.get().getBoolean("Animations.Appearance.CloserCombatCloserSplashes", true);
         scatter = SplashesConfig.get().getDouble("Animations.Appearance.Scatter", 1);
         followCamera = SplashesConfig.get().getBoolean("Animations.CameraFollow.Enabled", true);
         cameraFollowMaxRange = SplashesConfig.get().getDouble("Animations.CameraFollow.MaxRange", 1.5);

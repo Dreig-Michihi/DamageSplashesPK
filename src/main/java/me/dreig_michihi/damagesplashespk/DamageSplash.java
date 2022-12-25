@@ -4,13 +4,14 @@ import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.PacketContainer;
+import com.comphenix.protocol.utility.MinecraftVersion;
 import com.comphenix.protocol.wrappers.WrappedChatComponent;
+import com.comphenix.protocol.wrappers.WrappedDataValue;
 import com.comphenix.protocol.wrappers.WrappedDataWatcher;
+import com.google.common.collect.Lists;
 import com.projectkorra.projectkorra.Element;
 import com.projectkorra.projectkorra.GeneralMethods;
-import com.projectkorra.projectkorra.configuration.ConfigManager;
 import me.dreig_michihi.damagesplashespk.config.SplashesConfig;
-//import org.bukkit.ChatColor;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.EntityType;
@@ -20,11 +21,8 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.awt.*;
-import java.lang.reflect.InvocationTargetException;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class DamageSplash {
@@ -191,11 +189,7 @@ public class DamageSplash {
     private void remove() {
         PacketContainer packet = manager.createPacket(PacketType.Play.Server.ENTITY_DESTROY);
         packet.getIntLists().write(0, List.of(entityID));
-        try {
-            manager.sendServerPacket(player, packet);
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
-        }
+        manager.sendServerPacket(player, packet);
     }
 
     private void teleport(Location destination) {
@@ -206,11 +200,7 @@ public class DamageSplash {
                 .write(1, destination.getY())
                 .write(2, destination.getZ());
         location = destination;
-        try {
-            manager.sendServerPacket(player, packet);
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
-        }
+        manager.sendServerPacket(player, packet);
     }
 
     private void summon() {
@@ -250,13 +240,18 @@ public class DamageSplash {
         PacketContainer dataPacket = new PacketContainer(PacketType.Play.Server.ENTITY_METADATA);
         dataPacket.getModifier().writeDefaults();
         dataPacket.getIntegers().write(0, entityID);
-        dataPacket.getWatchableCollectionModifier().write(0, metadata.getWatchableObjects());
-        try {
-            manager.sendServerPacket(player, packet);
-            manager.sendServerPacket(player, dataPacket);
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
+        if(MinecraftVersion.getCurrentVersion().isAtLeast(new MinecraftVersion("1.19.3"))) {
+            final List<WrappedDataValue> wrappedDataValueList = Lists.newArrayList();
+            metadata.getWatchableObjects().stream().filter(Objects::nonNull).forEach(entry -> {
+                final WrappedDataWatcher.WrappedDataWatcherObject dataWatcherObject = entry.getWatcherObject();
+                wrappedDataValueList.add(new WrappedDataValue(dataWatcherObject.getIndex(), dataWatcherObject.getSerializer(), entry.getRawValue()));
+            });
+            dataPacket.getDataValueCollectionModifier().write(0, wrappedDataValueList);
+        }else {
+            dataPacket.getWatchableCollectionModifier().write(0, metadata.getWatchableObjects());
         }
+        manager.sendServerPacket(player, packet);
+        manager.sendServerPacket(player, dataPacket);
         //return packet;
     }
 }

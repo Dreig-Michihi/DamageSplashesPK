@@ -5,7 +5,7 @@ api-version: 1.16
 authors: [ Dreig_Michihi ]
 description: '${project.description}'
 depend: [ProtocolLib, ProjectKorra]
-softdepend: [Spirits, Hyperion, JedCore]
+softdepend: [Spirits, Hyperion, JedCore, ProjectAddons]
 commands:
   dspkreload:
     description: Reload plugin

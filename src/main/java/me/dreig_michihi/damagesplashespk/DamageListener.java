@@ -1,6 +1,7 @@
 package me.dreig_michihi.damagesplashespk;
 
 import com.projectkorra.projectkorra.event.AbilityDamageEntityEvent;
+import org.bukkit.GameMode;
 import org.bukkit.entity.AbstractArrow;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -17,6 +18,9 @@ public class DamageListener implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void DamageEvent(final EntityDamageByEntityEvent event) {
+        if (event.getEntity().isInvulnerable() || event.getEntity() instanceof Player player &&
+                (player.getGameMode() != GameMode.SURVIVAL && player.getGameMode() != GameMode.ADVENTURE))
+            return;
         if (event.getEntity() instanceof LivingEntity living) {
             Player player;
             if (event.getDamager() instanceof Player damager)
@@ -38,6 +42,9 @@ public class DamageListener implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void AbilityDamageEvent(final AbilityDamageEntityEvent event) {
+        if (event.getEntity().isInvulnerable() || event.getEntity() instanceof Player player &&
+                (player.getGameMode() != GameMode.SURVIVAL && player.getGameMode() != GameMode.ADVENTURE))
+            return;
         Player player;
         if (event.getSource() != null)
             player = event.getSource();

@@ -1,6 +1,5 @@
 package me.dreig_michihi.damagesplashespk;
 
-import me.dreig_michihi.damagesplashespk.commands.ToggleCommand;
 import me.dreig_michihi.damagesplashespk.commands.ReloadCommand;
 import me.dreig_michihi.damagesplashespk.config.SplashesConfig;
 import org.bukkit.event.HandlerList;
@@ -19,7 +18,6 @@ public final class DamageSplashesPK extends JavaPlugin {
         SplashesConfig.get().options().copyDefaults(true);
         SplashesConfig.save();
         Objects.requireNonNull(getCommand("dspkreload")).setExecutor(new ReloadCommand());
-        Objects.requireNonNull(getCommand("dspktoggle")).setExecutor(new ToggleCommand());
         Listener damageListener = new DamageListener();
         getServer().getPluginManager().registerEvents(damageListener, this);
         this.getLogger().info("DAMAGE SPLASHES ENABLED!!!");

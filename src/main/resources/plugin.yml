@@ -7,11 +7,6 @@ description: '${project.description}'
 depend: [ProtocolLib, ProjectKorra]
 softdepend: [Spirits, Hyperion, JedCore, ProjectAddons]
 commands:
-  dspktoggle:
-    description: Toggle visibility of damage splashses
-    usage: /<command>
-    aliases:
-      - dspk
   dspkreload:
     description: Reload plugin
     usage: /<command>

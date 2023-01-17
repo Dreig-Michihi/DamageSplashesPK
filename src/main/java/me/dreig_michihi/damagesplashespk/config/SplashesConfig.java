@@ -62,8 +62,8 @@ public class SplashesConfig {
         SplashesConfig.get().addDefault("Language.ToggleOnMessage", "Now you can see damage splashes.");
         SplashesConfig.get().addDefault("Language.ToggleOffMessage", "You can't see damage splashes now. Use \"/dspk toggle\" again to toggle it back.");
         permissionMessage = SplashesConfig.get().getString("Language.PermissionMessage", "You have no permission to do it.");
-        canseeMessage = SplashesConfig.get().getString("Language.PermissionMessage", "You can see damage splashes now.");
-        cantseeMessage = SplashesConfig.get().getString("Language.PermissionMessage", "You can't see damage splashes now");
+        canseeMessage = SplashesConfig.get().getString("Language.CanSeeMessage", "You can see damage splashes now.");
+        cantseeMessage = SplashesConfig.get().getString("Language.CantSeeMessage", "You can't see damage splashes now");
         reloadMessage = SplashesConfig.get().getString("Language.ReloadMessage", "DamageSplashesPK reloaded.");
     }
 

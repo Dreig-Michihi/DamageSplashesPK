@@ -8,6 +8,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Objects;
 
 public class SplashesConfig {
@@ -48,19 +49,25 @@ public class SplashesConfig {
     }
 
     private static String permissionMessage;
+    private static String canseeMessage;
+    private static String cantseeMessage;
     private static String reloadMessage;
 
 
     public static void loadLang(){
         SplashesConfig.get().addDefault("Language.PermissionMessage", "You have no permission to do it.");
+        SplashesConfig.get().addDefault("Language.CanSeeMessage", "You can see damage splashes now.");
+        SplashesConfig.get().addDefault("Language.CantSeeMessage", "You can't see damage splashes now.");
         SplashesConfig.get().addDefault("Language.ReloadMessage", "DamageSplashesPK reloaded.");
         SplashesConfig.get().addDefault("Language.ToggleOnMessage", "Now you can see damage splashes.");
         SplashesConfig.get().addDefault("Language.ToggleOffMessage", "You can't see damage splashes now. Use \"/dspk toggle\" again to toggle it back.");
         permissionMessage = SplashesConfig.get().getString("Language.PermissionMessage", "You have no permission to do it.");
+        canseeMessage = SplashesConfig.get().getString("Language.PermissionMessage", "You can see damage splashes now.");
+        cantseeMessage = SplashesConfig.get().getString("Language.PermissionMessage", "You can't see damage splashes now");
         reloadMessage = SplashesConfig.get().getString("Language.ReloadMessage", "DamageSplashesPK reloaded.");
     }
 
-    public static void reload() {
+    public static void reload(){
         customFile = YamlConfiguration.loadConfiguration(file);
         SplashesConfig.loadLang();
         DamageSplash.load();
@@ -98,5 +105,13 @@ public class SplashesConfig {
 
     public static String getReloadMessage() {
         return reloadMessage;
+    }
+
+    public static String getCanseeMessage() {
+        return canseeMessage;
+    }
+
+    public static String getCantseeMessage() {
+        return cantseeMessage;
     }
 }

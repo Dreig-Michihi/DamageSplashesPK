@@ -21,6 +21,8 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.awt.*;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
@@ -68,9 +70,9 @@ public class DamageSplash {
                 Location destination = player.getEyeLocation()
                         .add((GeneralMethods.getDirection(player.getEyeLocation(), origin).normalize())
                                 .multiply(closeness)
-                                .multiply(Math.min(1, closerCombatCloserSplashes?
-                                        Math.max(minCloseness/(minCloseness+7.5),
-                                                player.getEyeLocation().distance(origin)/(minCloseness + 7.5)):1))) //9*u=4.5
+                                .multiply(Math.min(1, closerCombatCloserSplashes ?
+                                        Math.max(minCloseness / (minCloseness + 7.5),
+                                                player.getEyeLocation().distance(origin) / (minCloseness + 7.5)) : 1))) //9*u=4.5
                         .add(random);
                 if (followCamera) {
                     Vector splashDirection = GeneralMethods.getDirection(player.getEyeLocation(), origin).normalize().multiply(cameraFollowMaxRange);
@@ -114,7 +116,7 @@ public class DamageSplash {
     private static final HashMap<Element, ChatColor> elementColors = new HashMap<>();
     private static final HashMap<Element, String> elementSymbols = new HashMap<>();
 
-    public static void load() {
+    public static void load(){
         SplashesConfig.get().addDefault("Info.ShownNumberFactor", 0.5);
         SplashesConfig.get().addDefault("Info.SplashDuration", 1250L);
         SplashesConfig.get().addDefault("Animations.Appearance.MinCloseness", 1.5);
@@ -127,12 +129,26 @@ public class DamageSplash {
                 "#" + String.format("%06x", 0xFFFFFF & Color.WHITE.getRGB()));
         SplashesConfig.get().addDefault("Visuals.Default.Symbol", "♥");
         for (Element element : Element.getAllElements()) {
-            SplashesConfig.get().addDefault("Visuals." + element.getName() + "." + element.getName() + ".Color",
-                    "#" + String.format("%06x", 0xFFFFFF & element.getColor().getColor().getRGB()));
+            try {
+                SplashesConfig.get().addDefault("Visuals." + element.getName() + "." + element.getName() + ".Color",
+                        "#" + String.format("%06x", 0xFFFFFF & getElementColor(element).getColor().getRGB()));
+            } catch (Exception e) {
+                DamageSplashesPK.plugin.getLogger().info(ChatColor.RED + "" + ChatColor.BOLD + "Something got wrong while loading element \"" + element.getName() +
+                        "\" from plugin \"" + element.getPlugin() + "\", so WHITE color will be used for this element.");
+                SplashesConfig.get().addDefault("Visuals." + element.getName() + "." + element.getName() + ".Color",
+                        "#" + String.format("%06x", 0xFFFFFF & Color.WHITE.getRGB()));
+            }
             SplashesConfig.get().addDefault("Visuals." + element.getName() + "." + element.getName() + ".Symbol", "♥");
             for (Element.SubElement subElement : Element.getSubElements(element)) {
-                SplashesConfig.get().addDefault("Visuals." + element.getName() + "." + subElement.getName() + ".Color",
-                        "#" + String.format("%06x", 0xFFFFFF & (subElement.getPlugin()==null?Color.WHITE:subElement.getColor().getColor()).getRGB()));
+                try {
+                    SplashesConfig.get().addDefault("Visuals." + element.getName() + "." + subElement.getName() + ".Color",
+                            "#" + String.format("%06x", 0xFFFFFF & (subElement.getPlugin() == null ? Color.WHITE : getElementColor(subElement).getColor()).getRGB()));
+                } catch (Exception e) {
+                    DamageSplashesPK.plugin.getLogger().info(ChatColor.RED + "" + ChatColor.BOLD + "Something got wrong while loading element \"" + subElement.getName() +
+                            "\" from plugin \"" + subElement.getPlugin() + "\", so WHITE color will be used for this element.");
+                    SplashesConfig.get().addDefault("Visuals." + element.getName() + "." + subElement.getName() + ".Color",
+                            "#" + String.format("%06x", 0xFFFFFF & Color.WHITE.getRGB()));
+                }
                 SplashesConfig.get().addDefault("Visuals." + element.getName() + "." + subElement.getName() + ".Symbol", "♥");
             }
         }
@@ -140,15 +156,21 @@ public class DamageSplash {
         elementColors.put(null, ChatColor.of((SplashesConfig.get().getString("Visuals.Default.Color", "#" + String.format("%06x", 0xFFFFFF & Color.WHITE.getRGB())))));
         elementSymbols.put(null, SplashesConfig.get().getString("Visuals.Default.Symbols", "♥"));
         for (Element element : Element.getAllElements()) {
+            try {
+
+            } catch (Exception e) {
+                DamageSplashesPK.plugin.getLogger().info(ChatColor.RED + "" + ChatColor.BOLD + "Something got wrong while loading element \"" + element.getName() +
+                        "\" from plugin \"" + element.getPlugin() + "\", so WHITE color will be used for this element.");
+            }
             elementColors.put(element, ChatColor.of(
                     SplashesConfig.get().getString("Visuals." + element.getName() + "." + element.getName() + ".Color",
-                            "#" + String.format("%06x", 0xFFFFFF & element.getColor().getColor().getRGB()))));
+                            "#" + String.format("%06x", 0xFFFFFF & getElementColor(element).getColor().getRGB()))));
             elementSymbols.put(element,
                     SplashesConfig.get().getString("Visuals." + element.getName() + "." + element.getName() + ".Symbol", "♥"));
             for (Element.SubElement subElement : Element.getSubElements(element)) {
                 elementColors.put(subElement, ChatColor.of(
                         SplashesConfig.get().getString("Visuals." + element.getName() + "." + subElement.getName() + ".Color",
-                                "#" + String.format("%06x", 0xFFFFFF & (subElement.getPlugin()==null?Color.WHITE:subElement.getColor().getColor()).getRGB()))));
+                                "#" + String.format("%06x", 0xFFFFFF & (subElement.getPlugin() == null ? Color.WHITE : getElementColor(subElement).getColor()).getRGB()))));
                 elementSymbols.put(subElement,
                         SplashesConfig.get().getString("Visuals." + element.getName() + "." + subElement.getName() + ".Symbol", "♥"));
             }
@@ -161,6 +183,21 @@ public class DamageSplash {
         followCamera = SplashesConfig.get().getBoolean("Animations.CameraFollow.Enabled", true);
         cameraFollowMaxRange = SplashesConfig.get().getDouble("Animations.CameraFollow.MaxRange", 1.5);
         disappearAnimation = SplashesConfig.get().getBoolean("Animations.CameraFollow.Enabled", true);
+    }
+
+    private static ChatColor getElementColor(Element element) {
+        try{
+            Method getColor = Element.class.getDeclaredMethod("getColor");
+            ChatColor color;
+            if (getColor.getReturnType().isAssignableFrom(org.bukkit.ChatColor.class))
+                color = ((org.bukkit.ChatColor) getColor.invoke(element)).asBungee();
+            else
+                color = element.getColor();
+            return color;
+        } catch (NoSuchMethodException | InvocationTargetException | SecurityException | IllegalAccessException |
+                 IllegalArgumentException e) {
+            return ChatColor.of(Color.WHITE);
+        }
     }
 
     private String getDamageString() {
@@ -240,14 +277,14 @@ public class DamageSplash {
         PacketContainer dataPacket = new PacketContainer(PacketType.Play.Server.ENTITY_METADATA);
         dataPacket.getModifier().writeDefaults();
         dataPacket.getIntegers().write(0, entityID);
-        if(MinecraftVersion.getCurrentVersion().isAtLeast(new MinecraftVersion("1.19.3"))) {
+        if (MinecraftVersion.getCurrentVersion().isAtLeast(new MinecraftVersion("1.19.3"))) {
             final List<WrappedDataValue> wrappedDataValueList = Lists.newArrayList();
             metadata.getWatchableObjects().stream().filter(Objects::nonNull).forEach(entry -> {
                 final WrappedDataWatcher.WrappedDataWatcherObject dataWatcherObject = entry.getWatcherObject();
                 wrappedDataValueList.add(new WrappedDataValue(dataWatcherObject.getIndex(), dataWatcherObject.getSerializer(), entry.getRawValue()));
             });
             dataPacket.getDataValueCollectionModifier().write(0, wrappedDataValueList);
-        }else {
+        } else {
             dataPacket.getWatchableCollectionModifier().write(0, metadata.getWatchableObjects());
         }
         manager.sendServerPacket(player, packet);

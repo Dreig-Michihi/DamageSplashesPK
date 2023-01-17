@@ -16,8 +16,8 @@ public class ReloadCommand implements CommandExecutor {
             player.sendMessage(ChatColor.RED + SplashesConfig.getPermissionMessage());
             return true;
         }
-        sender.sendMessage(ChatColor.AQUA + SplashesConfig.getReloadMessage());
         SplashesConfig.reload();
+        sender.sendMessage(ChatColor.AQUA + SplashesConfig.getReloadMessage());
         return true;
     }
 

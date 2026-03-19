@@ -1,10 +1,10 @@
 name: '${project.name}'
 version: '${project.version}'
 main: '${project.groupId}.${project.name}'
-api-version: 1.16
+api-version: 1.21
 authors: [ Dreig_Michihi ]
 description: '${project.description}'
-depend: [ProtocolLib, ProjectKorra]
+depend: [packetevents, ProjectKorra]
 softdepend: [Spirits, Hyperion, JedCore, ProjectAddons]
 commands:
   dspkreload:
@@ -16,9 +16,12 @@ permissions:
   dspk.command.reload:
     default: op
     description: Grants access to reload command.
-  dspk.command.toggle:
+  dspk.display.sum:
     default: true
-    description: Grants access to reload command.
+    description: Shows damage sum instead of separate damage.
+  dspk.display.joint:
+    default: true
+    description: When false - shows damage sum separate for each element.
   dspk.cansee:
     default: true
     description: Grants access to see damage splashes.

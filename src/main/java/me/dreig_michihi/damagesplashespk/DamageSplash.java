@@ -1,16 +1,21 @@
 package me.dreig_michihi.damagesplashespk;
 
-import com.comphenix.protocol.PacketType;
-import com.comphenix.protocol.ProtocolLibrary;
-import com.comphenix.protocol.ProtocolManager;
-import com.comphenix.protocol.events.PacketContainer;
-import com.comphenix.protocol.reflect.FieldAccessException;
-import com.comphenix.protocol.reflect.StructureModifier;
-import com.comphenix.protocol.wrappers.WrappedChatComponent;
-import com.comphenix.protocol.wrappers.WrappedDataValue;
-import com.comphenix.protocol.wrappers.WrappedDataWatcher;
+import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.protocol.entity.data.EntityData;
+import com.github.retrooper.packetevents.protocol.entity.data.EntityDataTypes;
+import com.github.retrooper.packetevents.protocol.player.User;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerDestroyEntities;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityMetadata;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityTeleport;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSpawnEntity;
 import com.projectkorra.projectkorra.Element;
+import io.github.retrooper.packetevents.util.SpigotConversionUtil;
 import me.dreig_michihi.damagesplashespk.config.SplashesConfig;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -35,7 +40,6 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class DamageSplash {
     private static HashMap<Player, Map<LivingEntity, Map<String, DamageSplash>>> Player_LentElementSplash = new HashMap<>();
-    private static final ProtocolManager manager = ProtocolLibrary.getProtocolManager();
 
     private static double damageFactor;
     private static double minCloseness;
@@ -48,14 +52,16 @@ public class DamageSplash {
     private static long comboAddsDuration;
     private static long maxDuration;
     private static String comboPrefix = "x";
-    protected static double minDamageDelta;
-    private static final HashMap<String, ChatColor> elementColors = new HashMap<>();
+    public static double minDamageDelta;
+    private static final HashMap<String, net.kyori.adventure.text.format.TextColor> elementColors = new HashMap<>();
     private static final HashMap<String, String> elementSymbols = new HashMap<>();
 
     private int entityID;
+    private UUID entityUUID;
     private int combo = 1;
     private double damage;
     private Player player;
+    private User user;
     private LivingEntity target;
     private @Nullable String element;
     private Location origin;
@@ -70,6 +76,7 @@ public class DamageSplash {
 
     public DamageSplash(Player player, double damage, LivingEntity target, @Nullable String element) {
         this.player = player;
+        this.user = PacketEvents.getAPI().getPlayerManager().getUser(player);
         for (Player spectator : player.getServer().getOnlinePlayers()) {
             if (spectator.getGameMode() != GameMode.SPECTATOR) continue;
             if (!player.equals(spectator.getSpectatorTarget())) continue;
@@ -81,6 +88,7 @@ public class DamageSplash {
         DamageSplash splash = player.hasPermission("dspk.display.sum") ? addSplash(this) : this;
         if (this.equals(splash)) {
             this.entityID = ThreadLocalRandom.current().nextInt(0, Integer.MAX_VALUE);
+            this.entityUUID = UUID.randomUUID();
             this.angle = ThreadLocalRandom.current().nextDouble(/*2 * */Math.PI);
             this.offset = ThreadLocalRandom.current().nextDouble(scatter / 2, scatter + 0.1);
         }
@@ -234,6 +242,12 @@ public class DamageSplash {
         return task;
     }
 
+    @SuppressWarnings("deprecation")
+    private static TextColor chatColorToTextColor(ChatColor chatColor) {
+        return chatColor == null ? NamedTextColor.WHITE :
+                TextColor.color(chatColor.getColor().getRGB());
+    }
+
     public static void load() {
         SplashesConfig.get().addDefault("Info.ShownNumberFactor", 0.5);
         SplashesConfig.get().addDefault("Info.SplashDuration", 1500L);
@@ -275,7 +289,7 @@ public class DamageSplash {
             }
         }
         SplashesConfig.save();
-        elementColors.put(null, ChatColor.of((SplashesConfig.get().getString("Visuals.Default.Color", "#" + String.format("%06x", 0xFFFFFF & Color.WHITE.getRGB())))));
+        elementColors.put(null, TextColor.fromHexString((SplashesConfig.get().getString("Visuals.Default.Color", "#" + String.format("%06x", 0xFFFFFF & Color.WHITE.getRGB())))));
         elementSymbols.put(null, SplashesConfig.get().getString("Visuals.Default.Symbols", "♥"));
         for (Element element : Element.getAllElements()) {
             /*try {
@@ -284,13 +298,13 @@ public class DamageSplash {
                 DamageSplashesPK.plugin.getLogger().info(ChatColor.RED + "" + ChatColor.BOLD + "Something got wrong while loading element \"" + element.getName() +
                         "\" from plugin \"" + element.getPlugin() + "\", so WHITE color will be used for this element.");
             }*/
-            elementColors.put(element.getName(), ChatColor.of(
+            elementColors.put(element.getName(), TextColor.fromHexString(
                     SplashesConfig.get().getString("Visuals." + element.getName() + "." + element.getName() + ".Color",
                             "#" + String.format("%06x", 0xFFFFFF & getElementColor(element).getColor().getRGB()))));
             elementSymbols.put(element.getName(),
                     SplashesConfig.get().getString("Visuals." + element.getName() + "." + element.getName() + ".Symbol", "♥"));
             for (Element.SubElement subElement : Element.getSubElements(element)) {
-                elementColors.put(subElement.getName(), ChatColor.of(
+                elementColors.put(subElement.getName(), TextColor.fromHexString(
                         SplashesConfig.get().getString("Visuals." + element.getName() + "." + subElement.getName() + ".Color",
                                 "#" + String.format("%06x", 0xFFFFFF & (subElement.getPlugin() == null ? Color.WHITE : getElementColor(subElement).getColor()).getRGB()))));
                 elementSymbols.put(subElement.getName(),
@@ -311,10 +325,11 @@ public class DamageSplash {
         disappearAnimation = SplashesConfig.get().getBoolean("Animations.CameraFollow.Enabled", true);
     }
 
+    @SuppressWarnings("deprecation")
     private static ChatColor getElementColor(Element element) {
-        if (element.getType()== Element.ElementType.NO_SUFFIX)
-            return ChatColor.of(Color.WHITE);
-        try{
+/*        if (element.getType() == Element.ElementType.NO_SUFFIX)
+            return ChatColor.of(Color.WHITE);*/
+        try {
             Method getColor = Element.class.getDeclaredMethod("getColor");
             ChatColor color;
             if (getColor.getReturnType().isAssignableFrom(org.bukkit.ChatColor.class))
@@ -328,7 +343,36 @@ public class DamageSplash {
         }
     }
 
-    private String getDamageString() {
+    private Component getDamageComponent() {
+        TextColor color = elementColors.getOrDefault(element, NamedTextColor.WHITE);
+
+        String dmg = String.format("%.2f", -damage * damageFactor).replace(',', '.');
+
+        int zeroIndex = dmg.indexOf('0', dmg.indexOf('.'));
+        if (zeroIndex > 0) {
+            dmg = dmg.substring(0, zeroIndex);
+        }
+        if (dmg.endsWith(".")) {
+            dmg = dmg.substring(0, dmg.length() - 1);
+        }
+        dmg += " " + elementSymbols.get(element);
+        if (combo > 1) {
+            dmg += " " + comboPrefix + combo;
+        }
+        TextComponent result = Component.text(dmg).color(color);
+        if (damage >= 20 && damage < 26) {
+            result = result.decorate(TextDecoration.OBFUSCATED);
+        } else if (damage >= 18) {
+            result = result.decorate(TextDecoration.BOLD).decorate(TextDecoration.ITALIC);
+        } else if (damage >= 12) {
+            result = result.decorate(TextDecoration.BOLD);
+        } else if (damage >= 6) {
+            result = result.decorate(TextDecoration.ITALIC);
+        }
+        return result;
+    }
+
+    /*private String getDamageString() {
         ChatColor color = elementColors.get(element);
         //player.sendMessage("damage: " + damage);
         //player.sendMessage("-damage/2: " + -damage/2);
@@ -350,116 +394,66 @@ public class DamageSplash {
             dmg += " " + comboPrefix + combo;
         }
         //player.sendMessage("dmg: " + dmg);
-        return color + /*(element == null ? "" : ("" + ChatColor.BOLD)) +*/ dmg;
-    }
+        return color + *//*(element == null ? "" : ("" + ChatColor.BOLD)) +*//* dmg;
+    }*/
 
     private void remove() {
         cancelTasks();
-        PacketContainer packet = manager.createPacket(PacketType.Play.Server.ENTITY_DESTROY);
-        List<Integer> intList = new ArrayList<>();
-        intList.add(entityID);
-        try {
-            packet.getIntLists().write(0, intList);
-            manager.sendServerPacket(player, packet);
-        } catch (FieldAccessException e1) {
-            try {
-                packet.getIntegerArrays().write(0, new int[]{entityID});
-                manager.sendServerPacket(player, packet);
-            } catch (FieldAccessException e2) {
-                teleport(location.add(0, -1000, 0));
-                new BukkitRunnable() {
-                    int times = 5;
-                    @Override
-                    public void run() {
-                        teleport(location.add(0, -1000, 0));
-                        times--;
-                        if (times < 0) {
-                            cancel();
-                        }
-                    }
-                }.runTaskTimer(DamageSplashesPK.plugin, 0, 0);
-            }
-        }
+        WrapperPlayServerDestroyEntities destroyPacket = new WrapperPlayServerDestroyEntities(entityID);
+        user.sendPacket(destroyPacket);
+    }
+
+    private static com.github.retrooper.packetevents.protocol.world.Location convert(Location location) {
+        return SpigotConversionUtil.fromBukkitLocation(location);
     }
 
     private void teleport(Location destination) {
-        PacketContainer packet = new PacketContainer(PacketType.Play.Server.ENTITY_TELEPORT);
-        try {
-            packet.getIntegers().write(0, entityID);
-            packet.getUUIDs().write(0, player.getUniqueId());
-            StructureModifier<Double> doubles = packet.getDoubles();
-            doubles.write(0, destination.getX());
-            doubles.write(1, destination.getY());
-            doubles.write(2, destination.getZ());
-            packet.getFloat().write(0, (float) destination.getYaw());
-            packet.getFloat().write(1, (float) destination.getPitch());
-            location = destination;
-            manager.sendServerPacket(player, packet);
-        } catch (Exception e) {
-            //silent
-        }
+        WrapperPlayServerEntityTeleport teleportPacket = new WrapperPlayServerEntityTeleport(
+                entityID,
+                convert(destination),
+                false);
+        user.sendPacket(teleportPacket);
+    }
+
+    private static com.github.retrooper.packetevents.protocol.entity.type.EntityType convert(EntityType type) {
+        return SpigotConversionUtil.fromBukkitEntityType(type);
     }
 
     private void summon() {
-        PacketContainer spawnPacket = manager.createPacket(PacketType.Play.Server.SPAWN_ENTITY);
-        // Entity ID
-        spawnPacket.getIntegers().write(0, this.entityID);
-        // Entity Type
-        spawnPacket.getEntityTypeModifier().write(0, EntityType.ARMOR_STAND);//or EntityType.AREA_EFFECT_CLOUD!!!
         this.location = this.target.getEyeLocation();
-        spawnPacket.getDoubles().write(0, this.location.getX());
-        spawnPacket.getDoubles().write(1, this.location.getY());
-        spawnPacket.getDoubles().write(2, this.location.getZ());
-        // Set UUID
-        UUID uuid = UUID.randomUUID();
-        spawnPacket.getUUIDs().write(0, uuid);
 
-        PacketContainer dataPacket = manager.createPacket(PacketType.Play.Server.ENTITY_METADATA);
-        dataPacket.getIntegers().write(0, entityID);
-        List<WrappedDataValue> dataValues = new ArrayList<>();
-        // Сериализатор для типа Byte
-        WrappedDataWatcher.Serializer byteSerializer = WrappedDataWatcher.Registry.get(Byte.class);
-        WrappedDataWatcher.Serializer boolSerializer = WrappedDataWatcher.Registry.get(Boolean.class);
-        WrappedDataWatcher.Serializer chatSerializer = WrappedDataWatcher.Registry.getChatComponentSerializer(true);
+        // 1️⃣ SPAWN_ENTITY (ArmorStand)
+        WrapperPlayServerSpawnEntity spawnPacket = new WrapperPlayServerSpawnEntity(
+                entityID,                               // int entityID
+                entityUUID,                             // @Nullable UUID uuid
+                convert(EntityType.ARMOR_STAND),        // EntityType entityType
+                convert(location),                      // Location location
+                0.0f,                                   // float headYaw
+                0,                                      // int data
+                null                                    // @Nullable Vector3d velocity
+        );
 
-        Optional<?> opt = Optional
-                .of(WrappedChatComponent
-                        .fromChatMessage(this.getDamageString())[0].getHandle());
+        List<EntityData<?>> metadata = new ArrayList<>();
 
-        dataValues.add(new WrappedDataValue(0, byteSerializer, (byte) 0x20)); // invisible
-        dataValues.add(new WrappedDataValue(2, chatSerializer, opt)); // name
-        dataValues.add(new WrappedDataValue(3, boolSerializer, true)); // Custom Name visible
-        dataValues.add(new WrappedDataValue(15, byteSerializer, (byte) (0x01 | 0x08 | 0x10))); // isSmall, noBasePlate, set Marker
+        // Индекс 0: Невидимый (byte flags | 0x20)
+        metadata.add(new EntityData<>(0, EntityDataTypes.BYTE, (byte) 0x20));
 
-        dataPacket.getDataValueCollectionModifier().write(0, dataValues);
+        // Индекс 2: CustomName (Component)
+        //String plainText = TextComponent.stripColor(getDamageString());
+        Component damageText = getDamageComponent();
+        metadata.add(new EntityData<>(2, EntityDataTypes.OPTIONAL_ADV_COMPONENT, Optional.of(damageText)));
 
-        /*WrappedDataWatcher metadata = WrappedDataWatcher.getEntityWatcher(null);
-        Optional<?> opt = Optional
-                .of(WrappedChatComponent
-                        .fromChatMessage(this.getDamageString())[0].getHandle());
-        metadata.setObject(new WrappedDataWatcher.WrappedDataWatcherObject(
-        0, WrappedDataWatcher.Registry.get(Byte.class)), (byte) 0x20); //invis
-        metadata.setObject(new WrappedDataWatcher.WrappedDataWatcherObject(
-        2, WrappedDataWatcher.Registry.getChatComponentSerializer(true)), opt);
-        metadata.setObject(new WrappedDataWatcher.WrappedDataWatcherObject(
-        3, WrappedDataWatcher.Registry.get(Boolean.class)), true); //custom name visible
-        metadata.setObject(new WrappedDataWatcher.WrappedDataWatcherObject(
-        15, WrappedDataWatcher.Registry.get(Byte.class)), (byte) (0x01 | 0x08 | 0x10)); //isSmall, noBasePlate, set Marker
-        PacketContainer dataPacket = new PacketContainer(PacketType.Play.Server.ENTITY_METADATA);
-        dataPacket.getModifier().writeDefaults();
-        dataPacket.getIntegers().write(0, this.entityID);
-        if (MinecraftVersion.getCurrentVersion().isAtLeast(new MinecraftVersion("1.19.3"))) {
-            final List<WrappedDataValue> wrappedDataValueList = new ArrayList<>();
-            metadata.getWatchableObjects().stream().filter(Objects::nonNull).forEach(entry -> {
-                final WrappedDataWatcher.WrappedDataWatcherObject dataWatcherObject = entry.getWatcherObject();
-                wrappedDataValueList.add(new WrappedDataValue(dataWatcherObject.getIndex(), dataWatcherObject.getSerializer(), entry.getRawValue()));
-            });
-            dataPacket.getDataValueCollectionModifier().write(0, wrappedDataValueList);
-        } else {
-            dataPacket.getWatchableCollectionModifier().write(0, metadata.getWatchableObjects());
-        }*/
-        manager.sendServerPacket(this.player, spawnPacket);
-        manager.sendServerPacket(this.player, dataPacket);
+        // Индекс 3: CustomNameVisible (BOOLEAN)
+        metadata.add(new EntityData<>(3, EntityDataTypes.BOOLEAN, true));
+
+        // Индекс 15: ArmorStand flags (byte)
+        metadata.add(new EntityData<>(15, EntityDataTypes.BYTE, (byte) (0x01 | 0x08 | 0x10)));
+
+        WrapperPlayServerEntityMetadata metadataPacket = new WrapperPlayServerEntityMetadata(
+                entityID, metadata);
+        user.sendPacket(spawnPacket);
+        user.sendPacket(metadataPacket);
+
         startTasks(this);
     }
 

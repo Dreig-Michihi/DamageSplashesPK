@@ -1,9 +1,11 @@
-package me.dreig_michihi.damagesplashespk;
+package me.dreig_michihi.damagesplashespk.listeners;
 
 import com.projectkorra.projectkorra.BendingPlayer;
 import com.projectkorra.projectkorra.ability.Ability;
 import com.projectkorra.projectkorra.event.AbilityDamageEntityEvent;
 import com.projectkorra.projectkorra.util.MovementHandler;
+import me.dreig_michihi.damagesplashespk.DamageSplash;
+import me.dreig_michihi.damagesplashespk.DamageSplashesPK;
 import org.bukkit.GameMode;
 import org.bukkit.entity.AbstractArrow;
 import org.bukkit.entity.LivingEntity;

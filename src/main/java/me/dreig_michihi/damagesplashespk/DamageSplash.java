@@ -267,7 +267,7 @@ public class DamageSplash {
         for (Element element : Element.getAllElements()) {
             try {
                 SplashesConfig.get().addDefault("Visuals." + element.getName() + "." + element.getName() + ".Color",
-                        "#" + String.format("%06x", 0xFFFFFF & getElementColor(element).getColor().getRGB()));
+                        "#" + String.format("%06x", 0xFFFFFF & getElementColorText(element).value()));
             } catch (Exception e) {
                 DamageSplashesPK.plugin.getLogger().info(ChatColor.RED + "" + ChatColor.BOLD + "Something got wrong while loading element \"" + element.getName() +
                         "\" from plugin \"" + element.getPlugin() + "\", so WHITE color will be used for this element.");
@@ -278,7 +278,7 @@ public class DamageSplash {
             for (Element.SubElement subElement : Element.getSubElements(element)) {
                 try {
                     SplashesConfig.get().addDefault("Visuals." + element.getName() + "." + subElement.getName() + ".Color",
-                            "#" + String.format("%06x", 0xFFFFFF & (subElement.getPlugin() == null ? Color.WHITE : getElementColor(subElement).getColor()).getRGB()));
+                            "#" + String.format("%06x", 0xFFFFFF & (subElement.getPlugin() == null ? NamedTextColor.WHITE : getElementColorText(subElement)).value()));
                 } catch (Exception e) {
                     DamageSplashesPK.plugin.getLogger().info(ChatColor.RED + "" + ChatColor.BOLD + "Something got wrong while loading element \"" + subElement.getName() +
                             "\" from plugin \"" + subElement.getPlugin() + "\", so WHITE color will be used for this element.");
@@ -300,13 +300,13 @@ public class DamageSplash {
             }*/
             elementColors.put(element.getName(), TextColor.fromHexString(
                     SplashesConfig.get().getString("Visuals." + element.getName() + "." + element.getName() + ".Color",
-                            "#" + String.format("%06x", 0xFFFFFF & getElementColor(element).getColor().getRGB()))));
+                            "#" + String.format("%06x", 0xFFFFFF & getElementColorText(element).value()))));
             elementSymbols.put(element.getName(),
                     SplashesConfig.get().getString("Visuals." + element.getName() + "." + element.getName() + ".Symbol", "♥"));
             for (Element.SubElement subElement : Element.getSubElements(element)) {
                 elementColors.put(subElement.getName(), TextColor.fromHexString(
                         SplashesConfig.get().getString("Visuals." + element.getName() + "." + subElement.getName() + ".Color",
-                                "#" + String.format("%06x", 0xFFFFFF & (subElement.getPlugin() == null ? Color.WHITE : getElementColor(subElement).getColor()).getRGB()))));
+                                "#" + String.format("%06x", 0xFFFFFF & (subElement.getPlugin() == null ? NamedTextColor.WHITE : getElementColorText(subElement)).value()))));
                 elementSymbols.put(subElement.getName(),
                         SplashesConfig.get().getString("Visuals." + element.getName() + "." + subElement.getName() + ".Symbol", "♥"));
             }
@@ -326,20 +326,17 @@ public class DamageSplash {
     }
 
     @SuppressWarnings("deprecation")
-    private static ChatColor getElementColor(Element element) {
-/*        if (element.getType() == Element.ElementType.NO_SUFFIX)
-            return ChatColor.of(Color.WHITE);*/
+    private static TextColor getElementColorText(Element element) {
+        /*if (element.getType() == Element.ElementType.NO_SUFFIX) {
+            return NamedTextColor.WHITE;
+        }*/
+
         try {
-            Method getColor = Element.class.getDeclaredMethod("getColor");
-            ChatColor color;
-            if (getColor.getReturnType().isAssignableFrom(org.bukkit.ChatColor.class))
-                color = ((org.bukkit.ChatColor) getColor.invoke(element)).asBungee();
-            else
-                color = element.getColor();
-            return color;
-        } catch (NoSuchMethodException | InvocationTargetException | SecurityException | IllegalAccessException |
-                 IllegalArgumentException e) {
-            return ChatColor.of(Color.WHITE);
+            ChatColor elementColor = element.getColor();
+            return TextColor.color(elementColor.getColor().getRGB());  // 🎯 Единственная строка!
+        } catch (Exception e) {
+            DamageSplashesPK.plugin.getLogger().warning("Failed to get color for " + element.getName());
+            return NamedTextColor.WHITE;
         }
     }
 
